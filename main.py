@@ -27,6 +27,8 @@ def main() -> None:
         config["timing"]["max_delay_time"],
     )
 
+    manager.run_event_loop()
+
 
 if __name__ == "__main__":
     main()

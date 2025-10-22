@@ -139,6 +139,8 @@ class SolarManager:
                 self.enable_grid_charging()
                 self.battery_rule_enabled = True
                 print("Grid charging enabled!")
+            
+            time.sleep(float(self.update_frequency))
 
     def _parse_time(self, time: str) -> tuple[int, int]:
         values = re.match(r"^(\d\d):(\d\d)$", time)

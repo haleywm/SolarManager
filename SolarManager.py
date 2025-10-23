@@ -1,12 +1,12 @@
 # Defines the solarmanager class which will help manage things
 import re
 import requests
-from datetime import datetime
 import time
+from typing import Optional
 
 
 class SolarManager:
-    url_prefix = "https://openapi.growatt.com/"
+    url_prefix = "https://openapi-au.growatt.com/"
 
     def __init__(
         self,
@@ -36,8 +36,9 @@ class SolarManager:
         # In order to do anything, we first need to get the users devices serial number
         # Step 1: List all user power plants. There will typically only be one
         res = self.session.get(self.url_prefix + "v1/plant/list")
+        print(res.text)
+        time.sleep(10)
         plants = res.json()["data"]["plants"]
-
         if len(plants) == 0:
             raise SolarError("Unable to find any power plants associated with account")
         elif len(plants) > 1:
@@ -49,14 +50,23 @@ class SolarManager:
         res = self.session.get(
             self.url_prefix + "v1/device/list", params={"plant_id": plant_id}
         )
+        print(res.text)
+        time.sleep(10)
+
         devices = res.json()["data"]["devices"]
 
-        if len(devices) == 0:
-            raise SolarError("Unable to find any devices associated with plant")
-        elif len(devices) > 1:
-            print("Warning: Multiple devices associated with account. Using first one.")
+        mix_sn: Optional[str] = None
+        for device in devices:
+            if device["type"] == 5:
+                # Found the correct value
+                mix_sn = device["device_sn"]
+                assert isinstance(mix_sn, str)
 
-        mix_sn = devices[0]["device_sn"]
+        if mix_sn is None:
+            raise SolarError(
+                "Unable to find any devices of type 5 associated with plant"
+            )
+
         assert isinstance(mix_sn, str), "Unexpected type returned from JSON"
         print(f"Retrieved device serial number {mix_sn}")
 
@@ -73,6 +83,8 @@ class SolarManager:
             self.url_prefix + "v1/device/mix/mix_data_info",
             params={"device_sn": self.mix_sn},
         )
+        print(res.text)
+        time.sleep(10)
         stop_switch_status = res.json()["data"]["forcedChargeStopSwitch1"]
         assert isinstance(stop_switch_status, int)
 
@@ -81,8 +93,10 @@ class SolarManager:
     def get_current_charge(self) -> int:
         res = self.session.post(
             self.url_prefix + "v1/device/mix/mix_last_data",
-            params={"mix_sn": self.mix_sn},
+            data={"mix_sn": self.mix_sn},
         )
+        print(res.text)
+        time.sleep(10)
         charge = res.json()["data"]["soc"]
         assert isinstance(charge, int), "Unexpected type returned from JSON"
 
@@ -139,7 +153,7 @@ class SolarManager:
                 self.enable_grid_charging()
                 self.battery_rule_enabled = True
                 print("Grid charging enabled!")
-            
+
             time.sleep(float(self.update_frequency))
 
     def _parse_time(self, time: str) -> tuple[int, int]:
@@ -151,9 +165,9 @@ class SolarManager:
         return (int(values.group(1)), int(values.group(2)))
 
     def _adjust_grid_charging(self, active: int) -> None:
-        res = requests.post(
+        res = self.session.post(
             self.url_prefix + "v1/mixSet",
-            params={
+            data={
                 "mix_sn": self.mix_sn,
                 "type": "mix_ac_charge_time_period",  # This means we're changing the time period on the inverter to force ac draw
                 "param1": 100,  # Charge at full capacity
@@ -176,6 +190,8 @@ class SolarManager:
                 "param18": 0,
             },
         )
+        print(res.text)
+        time.sleep(10)
 
         data = res.json()
         if data["error_code"] != 0:

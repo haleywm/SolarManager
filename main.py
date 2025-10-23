@@ -30,5 +30,21 @@ def main() -> None:
     manager.run_event_loop()
 
 
+def debug() -> SolarManager:
+    with open("config.toml", "rb") as f:
+        config = tomllib.load(f)
+
+    manager = SolarManager(
+        config["account"]["api_key"],
+        config["charging"]["target_percent"],
+        config["charging"]["start_time"],
+        config["charging"]["end_time"],
+        config["timing"]["update_frequency"],
+        config["timing"]["max_delay_time"],
+    )
+
+    return manager
+
+
 if __name__ == "__main__":
     main()

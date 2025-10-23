@@ -20,6 +20,8 @@ def main() -> None:
 
     manager = SolarManager(
         config["account"]["api_key"],
+        config["account"]["username"],
+        config["account"]["password"],
         config["charging"]["target_percent"],
         config["charging"]["start_time"],
         config["charging"]["end_time"],
@@ -36,6 +38,8 @@ def debug() -> SolarManager:
 
     manager = SolarManager(
         config["account"]["api_key"],
+        config["account"]["username"],
+        config["account"]["password"],
         config["charging"]["target_percent"],
         config["charging"]["start_time"],
         config["charging"]["end_time"],

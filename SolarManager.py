@@ -3,6 +3,7 @@ import re
 import requests
 import time
 from typing import Optional
+import hashlib
 
 
 class SolarManager:
@@ -11,14 +12,18 @@ class SolarManager:
     def __init__(
         self,
         api_key: str,
+        username: str,
+        password: str,
         target_percent: int,
         start_time: str,
         stop_time: str,
         update_frequency: int,
         max_delay_time: int,
     ) -> None:
-        self.api_key: str = api_key
-        self.target_percent: int = target_percent
+        self.api_key = api_key
+        self.username = username
+        self.password = password
+        self.target_percent = target_percent
         self.start_hour, self.start_minute = self._parse_time(start_time)
         self.stop_hour, self.stop_minute = self._parse_time(stop_time)
         self.update_frequency = update_frequency
@@ -27,6 +32,9 @@ class SolarManager:
         # Creating a session to use for API requests
         self.session = requests.Session()
         self.session.headers.update({"token": self.api_key})
+
+        # Login to create cookies for updating details
+        self.server_login()
 
         self.mix_sn = self.get_mix_sn()
 
@@ -156,6 +164,33 @@ class SolarManager:
 
             time.sleep(float(self.update_frequency))
 
+    def server_login(self) -> None:
+        # Attempts to log in to the server to generate a login session
+        res = self.session.post(
+            self.url_prefix + "login",
+            data={
+                "account": self.username,
+                "password": "",
+                "validateCode": "",
+                "isReadPact": 0,
+                "passwordCrc": self.hash_password(self.password),
+            },
+        )
+        print(res.text)
+        time.sleep(10)
+
+    def hash_password(self, password: str) -> str:
+        hasher = hashlib.md5()
+        hasher.update(password.encode())
+        result = hasher.hexdigest()
+
+        # Note: If any errors occur, another library suggests that
+        # I have to add 'c' if any 10s digit is 0
+        # see https://github.com/indykoning/PyPi_GrowattServer/blob/master/growattServer/base_api.py#L15
+        # Not currently an issue
+
+        return result
+
     def _parse_time(self, time: str) -> tuple[int, int]:
         values = re.match(r"^(\d\d):(\d\d)$", time)
         assert (
@@ -166,17 +201,18 @@ class SolarManager:
 
     def _adjust_grid_charging(self, active: int) -> None:
         res = self.session.post(
-            self.url_prefix + "v1/mixSet",
+            self.url_prefix + "tcpSet.do",
             data={
-                "mix_sn": self.mix_sn,
+                "action": "mixSet",
+                "serialNum": self.mix_sn,
                 "type": "mix_ac_charge_time_period",  # This means we're changing the time period on the inverter to force ac draw
                 "param1": 100,  # Charge at full capacity
                 "param2": self.target_percent,  # Cutoff charging at the target percent
                 "param3": 1,  # Enable drawing from mains
-                "param4": self.start_hour,  # Hour to start period
-                "param5": self.start_minute,  # Minute to start period
-                "param6": self.stop_hour,
-                "param7": self.stop_minute,
+                "param4": f"{self.start_hour:02d}",  # Hour to start period
+                "param5": f"{self.start_minute:02d}",  # Minute to start period
+                "param6": f"{self.stop_hour:02d}",
+                "param7": f"{self.stop_minute:02d}",
                 "param8": active,  # If this period should be active. Use the argument
                 "param9": 0,
                 "param10": 0,

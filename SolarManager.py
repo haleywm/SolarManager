@@ -43,7 +43,8 @@ class SolarManager:
         # In order to do anything, we first need to get the users devices serial number
         # Step 1: List all user power plants. There will typically only be one
         res = self.session.get(self.url_prefix + "v1/plant/list")
-        print(res.text)
+        if self.verbose:
+            print(res.text)
         time.sleep(10)
         plants = res.json()["data"]["plants"]
         if len(plants) == 0:
@@ -57,7 +58,8 @@ class SolarManager:
         res = self.session.get(
             self.url_prefix + "v1/device/list", params={"plant_id": plant_id}
         )
-        print(res.text)
+        if self.verbose:
+            print(res.text)
         time.sleep(10)
 
         devices = res.json()["data"]["devices"]
@@ -88,12 +90,13 @@ class SolarManager:
     def get_grid_charging_enabled(self) -> bool:
         # First, ensure that the right cookies are present
         self.server_login()
-        
+
         res = self.session.get(
             self.url_prefix + "v1/device/mix/mix_data_info",
             params={"device_sn": self.mix_sn},
         )
-        print(res.text)
+        if self.verbose:
+            print(res.text)
         time.sleep(10)
         stop_switch_status = res.json()["data"]["forcedChargeStopSwitch1"]
         assert isinstance(stop_switch_status, int)
@@ -105,7 +108,8 @@ class SolarManager:
             self.url_prefix + "v1/device/mix/mix_last_data",
             data={"mix_sn": self.mix_sn},
         )
-        print(res.text)
+        if self.verbose:
+            print(res.text)
         time.sleep(10)
         charge = res.json()["data"]["soc"]
         assert isinstance(charge, int), "Unexpected type returned from JSON"
@@ -142,9 +146,10 @@ class SolarManager:
 
             enough_battery = current_battery >= self.target_percent
 
-            print(
-                f"Battery currently at {current_battery}%, target: {self.target_percent}%"
-            )
+            if self.verbose:
+                print(
+                    f"Battery currently at {current_battery}%, target: {self.target_percent}%"
+                )
 
             if enough_battery and self.battery_rule_enabled:
                 # It's time to turn off grid charging for the battery
@@ -178,7 +183,8 @@ class SolarManager:
                 "passwordCrc": self.hash_password(self.password),
             },
         )
-        print(res.text)
+        if self.verbose:
+            print(res.text)
         time.sleep(10)
 
     def hash_password(self, password: str) -> str:
@@ -193,13 +199,13 @@ class SolarManager:
 
         return result
 
-    def _parse_time(self, time: str) -> tuple[int, int]:
+    def _parse_time(self, time: str) -> tuple[str, str]:
         values = re.match(r"^(\d\d):(\d\d)$", time)
         assert (
             values is not None
         ), f"Invalid time string {time}, should be in format DD:DD"
 
-        return (int(values.group(1)), int(values.group(2)))
+        return (values.group(1), values.group(2))
 
     def _adjust_grid_charging(self, active: int) -> None:
         res = self.session.post(
@@ -211,10 +217,10 @@ class SolarManager:
                 "param1": 100,  # Charge at full capacity
                 "param2": self.target_percent,  # Cutoff charging at the target percent
                 "param3": 1,  # Enable drawing from mains
-                "param4": f"{self.start_hour:02d}",  # Hour to start period
-                "param5": f"{self.start_minute:02d}",  # Minute to start period
-                "param6": f"{self.stop_hour:02d}",
-                "param7": f"{self.stop_minute:02d}",
+                "param4": f"{self.start_hour}",  # Hour to start period
+                "param5": f"{self.start_minute}",  # Minute to start period
+                "param6": f"{self.stop_hour}",
+                "param7": f"{self.stop_minute}",
                 "param8": active,  # If this period should be active. Use the argument
                 "param9": 0,
                 "param10": 0,
@@ -228,7 +234,8 @@ class SolarManager:
                 "param18": 0,
             },
         )
-        print(res.text)
+        if self.verbose:
+            print(res.text)
         time.sleep(10)
 
         data = res.json()

@@ -27,6 +27,7 @@ def main() -> None:
         config["charging"]["end_time"],
         config["timing"]["update_frequency"],
         config["timing"]["max_delay_time"],
+        config["other"]["verbose"],
     )
 
     manager.run_event_loop()
@@ -45,6 +46,7 @@ def debug() -> SolarManager:
         config["charging"]["end_time"],
         config["timing"]["update_frequency"],
         config["timing"]["max_delay_time"],
+        True,  # Verbose always on when debugging
     )
 
     return manager

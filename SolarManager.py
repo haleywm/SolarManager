@@ -19,6 +19,7 @@ class SolarManager:
         stop_time: str,
         update_frequency: int,
         max_delay_time: int,
+        verbose: bool,
     ) -> None:
         self.api_key = api_key
         self.username = username
@@ -28,13 +29,11 @@ class SolarManager:
         self.stop_hour, self.stop_minute = self._parse_time(stop_time)
         self.update_frequency = update_frequency
         self.max_delay_time = max_delay_time
+        self.verbose = verbose
 
         # Creating a session to use for API requests
         self.session = requests.Session()
         self.session.headers.update({"token": self.api_key})
-
-        # Login to create cookies for updating details
-        self.server_login()
 
         self.mix_sn = self.get_mix_sn()
 
@@ -87,6 +86,9 @@ class SolarManager:
         self._adjust_grid_charging(0)
 
     def get_grid_charging_enabled(self) -> bool:
+        # First, ensure that the right cookies are present
+        self.server_login()
+        
         res = self.session.get(
             self.url_prefix + "v1/device/mix/mix_data_info",
             params={"device_sn": self.mix_sn},

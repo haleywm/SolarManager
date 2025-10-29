@@ -53,10 +53,13 @@ class SolarManager:
         if len(plants) == 0:
             raise SolarError("Unable to find any power plants associated with account")
         elif len(plants) > 1:
-            print("Warning: Multiple plants associated with account. Using first one.")
+            print(
+                "Warning: Multiple plants associated with account. Using first one.",
+                flush=True,
+            )
 
         plant_id = plants[0]["plant_id"]
-        print(f"Retrieved plant id {plant_id}")
+        print(f"Retrieved plant id {plant_id}", flush=True)
 
         res = self.session.get(
             self.url_prefix + "v1/device/list", params={"plant_id": plant_id}
@@ -80,7 +83,7 @@ class SolarManager:
             )
 
         assert isinstance(mix_sn, str), "Unexpected type returned from JSON"
-        print(f"Retrieved device serial number {mix_sn}")
+        print(f"Retrieved device serial number {mix_sn}", flush=True)
 
         return mix_sn
 
@@ -134,7 +137,8 @@ class SolarManager:
         seconds_between = (current_time - data_time).total_seconds()
         if seconds_between > self.max_delay_time:
             print(
-                f"Warning! Data retrieved is {seconds_between:.1f} seconds old! Max configured time: {self.max_delay_time}"
+                f"Warning! Data retrieved is {seconds_between:.1f} seconds old! Max configured time: {self.max_delay_time}",
+                flush=True,
             )
         elif self.verbose:
             print(f"Parsed data is {seconds_between:.1f} seconds old")
@@ -162,7 +166,8 @@ class SolarManager:
 
     def run_event_loop(self) -> None:
         print(
-            f"Starting check cycle, will check battery status every {self.update_frequency} seconds"
+            f"Starting check cycle, will check battery status every {self.update_frequency} seconds",
+            flush=True,
         )
         while True:
             current_battery = self.get_current_charge()
@@ -177,28 +182,34 @@ class SolarManager:
             if enough_battery and self.battery_rule_enabled:
                 # It's time to turn off grid charging for the battery
                 print(
-                    f"Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)"
+                    f"Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)",
+                    flush=True,
                 )
                 try:
                     self.disable_grid_charging()
                     self.battery_rule_enabled = False
-                    print("Grid charging disabled!")
+                    print("Grid charging disabled!", flush=True)
                 except SolarError as e:
-                    print(f"Error occurred while disabling grid charging: {e}")
+                    print(
+                        f"Error occurred while disabling grid charging: {e}", flush=True
+                    )
                     # Assume that the battery rule wasn't updated so that we can try again
                     self.battery_rule_enabled = True
 
             elif not enough_battery and not self.battery_rule_enabled:
                 # The battery level is too low, enable the charging rule
                 print(
-                    f"Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)"
+                    f"Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)",
+                    flush=True,
                 )
                 try:
                     self.enable_grid_charging()
                     self.battery_rule_enabled = True
-                    print("Grid charging enabled!")
+                    print("Grid charging enabled!", flush=True)
                 except SolarError as e:
-                    print(f"Error occurred while enabling grid charging: {e}")
+                    print(
+                        f"Error occurred while enabling grid charging: {e}", flush=True
+                    )
                     # Assume that the battery rule wasn't updated so that we can try again
                     self.battery_rule_enabled = False
 

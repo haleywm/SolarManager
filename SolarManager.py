@@ -90,9 +90,6 @@ class SolarManager:
         self._adjust_grid_charging(0)
 
     def get_grid_charging_enabled(self) -> bool:
-        # First, ensure that the right cookies are present
-        self.server_login()
-
         res = self.session.get(
             self.url_prefix + "v1/device/mix/mix_data_info",
             params={"device_sn": self.mix_sn},
@@ -210,6 +207,9 @@ class SolarManager:
         return (values.group(1), values.group(2))
 
     def _adjust_grid_charging(self, active: int) -> None:
+        # First, ensure that the right cookies are present
+        self.server_login()
+
         res = self.session.post(
             self.url_prefix + "tcpSet.do",
             data={
@@ -241,10 +241,8 @@ class SolarManager:
         time.sleep(self.api_delay_time)
 
         data = res.json()
-        if data["error_code"] != 0:
-            raise SolarError(
-                f"Error {data["error_code"]} returned by API: {data["error_msg"]}"
-            )
+        if data["success"] is not True:
+            raise SolarError(f"Error returned by API: {data["msg"]}")
 
 
 class SolarError(Exception):

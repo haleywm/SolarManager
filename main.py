@@ -11,6 +11,7 @@ def main() -> None:
         type=Path,
         help="Location of the config file. Default: config.toml",
         default="config.toml",
+        nargs="?",
     )
 
     args = parser.parse_args()

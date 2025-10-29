@@ -4,6 +4,7 @@ import requests
 import time
 from typing import Optional
 import hashlib
+from datetime import datetime
 
 
 class SolarManager:
@@ -109,11 +110,34 @@ class SolarManager:
         )
         if self.verbose:
             print(res.text)
+
+        # Get current time before sleeping to avoid artificially stale data
+        current_time = datetime.now()
         time.sleep(self.api_delay_time)
-        charge = res.json()["data"]["soc"]
+        data = res.json()
+        charge = data["data"]["soc"]
         assert isinstance(charge, int), "Unexpected type returned from JSON"
 
-        # TODO: Check if data is reasonably up to date
+        data_time = datetime(
+            year=1900 + data["data"]["calendar"]["time"]["year"],
+            month=1
+            + data["data"]["calendar"]["time"][
+                "month"
+            ],  # Months are zero indexed in the json for some reason
+            day=data["data"]["calendar"]["time"]["date"],
+            hour=data["data"]["calendar"]["time"]["hours"],
+            minute=data["data"]["calendar"]["time"]["minutes"],
+            second=data["data"]["calendar"]["time"]["seconds"],
+        )
+        # Subtraction converts them into a timedelta representing the time between
+        # The two datetime instances
+        seconds_between = (current_time - data_time).total_seconds()
+        if seconds_between > self.max_delay_time:
+            print(
+                f"Warning! Data retrieved is {seconds_between:.1f} seconds old! Max configured time: {self.max_delay_time}"
+            )
+        elif self.verbose:
+            print(f"Parsed data is {seconds_between:.1f} seconds old")
 
         return charge
 

@@ -1,0 +1,34 @@
+[account]
+
+# You can generate an API key in your account settings
+api_key = "REQUIRED"
+# The API for updating inverter settings doesn't work correctly
+# So unfortunately account details are also required
+username = "REQUIRED"
+password = "REQUIRED"
+
+[charging]
+
+# Charging will be turned on between the given times
+# while the battery is less than the given percentage
+# And then off once this percentage is met
+
+# The inverter uses these times for turning the battery on and off
+# So even in the event of an internet outage, these times will be respected
+target_percent = 80
+start_time = "12:00"
+end_time = "14:00"
+
+[timing]
+
+# How long to wait between checking the battery level, in seconds
+update_frequency = 600
+# If the inverter data is found to be older than this amount, in seconds, the script will print a warning
+max_delay_time = 600
+# How long should the script sleep after making an API call
+# With no delay, many requests are denied
+api_delay_time = 10
+
+[other]
+# If the script should aggressively print status messages. Mostly useful for debugging.
+verbose = false

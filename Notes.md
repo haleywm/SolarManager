@@ -1,7 +1,5 @@
 # Development Notes
 
-The Growatt server library isn't great, only endpoints actively used by the developer are updated, the endpoints used for getting proper data from my inverter (the Growatt SPH, frequently referred to as the API as the mix). I think it'll be easier to just run my own requests through the requests library and call it a day.
-
 https://www.showdoc.com.cn/262556420217021/6129764434976910 is a valuable resource which documents the modern API calls in English. Interface Display > Equipment Related > SPH is where most of the useful stuff is. For almost all of these requests, the 'token' header must be set to your API key.
 
 Endpoints that I'll need:

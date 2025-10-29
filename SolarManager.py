@@ -179,18 +179,28 @@ class SolarManager:
                 print(
                     f"Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)"
                 )
-                self.disable_grid_charging()
-                self.battery_rule_enabled = False
-                print("Grid charging disabled!")
+                try:
+                    self.disable_grid_charging()
+                    self.battery_rule_enabled = False
+                    print("Grid charging disabled!")
+                except SolarError as e:
+                    print(f"Error occurred while disabling grid charging: {e}")
+                    # Assume that the battery rule wasn't updated so that we can try again
+                    self.battery_rule_enabled = True
 
             elif not enough_battery and not self.battery_rule_enabled:
                 # The battery level is too low, enable the charging rule
                 print(
                     f"Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)"
                 )
-                self.enable_grid_charging()
-                self.battery_rule_enabled = True
-                print("Grid charging enabled!")
+                try:
+                    self.enable_grid_charging()
+                    self.battery_rule_enabled = True
+                    print("Grid charging enabled!")
+                except SolarError as e:
+                    print(f"Error occurred while enabling grid charging: {e}")
+                    # Assume that the battery rule wasn't updated so that we can try again
+                    self.battery_rule_enabled = False
 
             time.sleep(self.update_frequency)
 

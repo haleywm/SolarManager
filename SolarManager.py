@@ -156,7 +156,7 @@ class SolarManager:
             if enough_battery and self.battery_rule_enabled:
                 # It's time to turn off grid charging for the battery
                 print(
-                    "Battery has sufficient charge, disabling grid charging (during specified times)"
+                    f"Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)"
                 )
                 self.disable_grid_charging()
                 self.battery_rule_enabled = False
@@ -165,13 +165,13 @@ class SolarManager:
             elif not enough_battery and not self.battery_rule_enabled:
                 # The battery level is too low, enable the charging rule
                 print(
-                    "Battery has insufficient charge, enabling grid charging (during specified times)"
+                    f"Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)"
                 )
                 self.enable_grid_charging()
                 self.battery_rule_enabled = True
                 print("Grid charging enabled!")
 
-            time.sleep(float(self.update_frequency))
+            time.sleep(self.update_frequency)
 
     def server_login(self) -> None:
         # Attempts to log in to the server to generate a login session

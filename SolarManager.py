@@ -17,9 +17,10 @@ class SolarManager:
         target_percent: int,
         start_time: str,
         stop_time: str,
-        update_frequency: int,
-        max_delay_time: int,
-        verbose: bool,
+        update_frequency: int = 600,
+        max_delay_time: int = 600,
+        api_delay_time: int = 10,
+        verbose: bool = False,
     ) -> None:
         self.api_key = api_key
         self.username = username
@@ -29,6 +30,7 @@ class SolarManager:
         self.stop_hour, self.stop_minute = self._parse_time(stop_time)
         self.update_frequency = update_frequency
         self.max_delay_time = max_delay_time
+        self.api_delay_time = api_delay_time
         self.verbose = verbose
 
         # Creating a session to use for API requests
@@ -45,7 +47,7 @@ class SolarManager:
         res = self.session.get(self.url_prefix + "v1/plant/list")
         if self.verbose:
             print(res.text)
-        time.sleep(10)
+        time.sleep(self.api_delay_time)
         plants = res.json()["data"]["plants"]
         if len(plants) == 0:
             raise SolarError("Unable to find any power plants associated with account")
@@ -60,7 +62,7 @@ class SolarManager:
         )
         if self.verbose:
             print(res.text)
-        time.sleep(10)
+        time.sleep(self.api_delay_time)
 
         devices = res.json()["data"]["devices"]
 
@@ -97,7 +99,7 @@ class SolarManager:
         )
         if self.verbose:
             print(res.text)
-        time.sleep(10)
+        time.sleep(self.api_delay_time)
         stop_switch_status = res.json()["data"]["forcedChargeStopSwitch1"]
         assert isinstance(stop_switch_status, int)
 
@@ -110,7 +112,7 @@ class SolarManager:
         )
         if self.verbose:
             print(res.text)
-        time.sleep(10)
+        time.sleep(self.api_delay_time)
         charge = res.json()["data"]["soc"]
         assert isinstance(charge, int), "Unexpected type returned from JSON"
 
@@ -185,7 +187,7 @@ class SolarManager:
         )
         if self.verbose:
             print(res.text)
-        time.sleep(10)
+        time.sleep(self.api_delay_time)
 
     def hash_password(self, password: str) -> str:
         hasher = hashlib.md5()
@@ -236,7 +238,7 @@ class SolarManager:
         )
         if self.verbose:
             print(res.text)
-        time.sleep(10)
+        time.sleep(self.api_delay_time)
 
         data = res.json()
         if data["error_code"] != 0:

@@ -262,7 +262,9 @@ class SolarManager:
                 "serialNum": self.mix_sn,
                 "type": "mix_ac_charge_time_period",  # This means we're changing the time period on the inverter to force ac draw
                 "param1": 100,  # Charge at full capacity
-                "param2": self.target_percent,  # Cutoff charging at the target percent
+                "param2": min(
+                    self.target_percent + 1, 100
+                ),  # Cutoff charging at the target percent
                 "param3": 1,  # Enable drawing from mains
                 "param4": f"{self.start_hour}",  # Hour to start period
                 "param5": f"{self.start_minute}",  # Minute to start period

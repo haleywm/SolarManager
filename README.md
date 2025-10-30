@@ -11,3 +11,9 @@ Download a copy of this repository. You'll need to either generate a docker cont
 Before building or running the code, first make a copy of `example_config.toml` at `config.toml` and fill in your account details and API key, and then adjust any other variables in the config to your liking.
 
 You can now run the program with `python main.py`. If you would like to specify a different config file location than `config.toml`, you can instead use `python main.py path/to/config.toml`. Have fun!
+
+Note that this code works by updating the "Battery First" element of the settings. The first time period will be set and enabled/disabled as necessary, while the second two elements will be cleared. If you wish to set additional battery first times not managed by this software, use the "Battery First1" element, which allows you to specify up to 3 additional timeslots.
+
+## Sources
+
+I didn't use any other Growatt interaction libraries in my code, as I found that many of them interacted with outdated endpoints for the SPH. I have based my code mostly on the API documentation at https://www.showdoc.com.cn/262556420217021/1494053950115877. In addition, I found that the `http(s)://test.growatt.com/v1/mixSet` endpoint didn't function, and would just return an empty value without updating the requested value. I ended up working around this by exploring network requests sent by the browser when manually updating the settings, and found that this worked almost identically to the API, however it requires username+password authentication rather than the API key used by the official API, which is why my script requires both an API key and also a username+password combination.

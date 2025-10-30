@@ -182,7 +182,7 @@ class SolarManager:
             if enough_battery and self.battery_rule_enabled:
                 # It's time to turn off grid charging for the battery
                 print(
-                    f"Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)",
+                    f"{datetime.now().strftime("%H:%M:%S")}: Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)",
                     flush=True,
                 )
                 try:
@@ -199,7 +199,7 @@ class SolarManager:
             elif not enough_battery and not self.battery_rule_enabled:
                 # The battery level is too low, enable the charging rule
                 print(
-                    f"Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)",
+                    f"{datetime.now().strftime("%H:%M:%S")}: Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)",
                     flush=True,
                 )
                 try:

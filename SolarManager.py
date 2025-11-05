@@ -40,7 +40,7 @@ class SolarManager:
 
         self.mix_sn = self.get_mix_sn()
 
-        self.battery_rule_enabled = self.get_grid_charging_enabled()
+        self.battery_rule_enabled: Optional[bool] = None
 
     def get_mix_sn(self) -> str:
         # In order to do anything, we first need to get the users devices serial number
@@ -179,39 +179,53 @@ class SolarManager:
                     f"Battery currently at {current_battery}%, target: {self.target_percent}%"
                 )
 
-            if enough_battery and self.battery_rule_enabled:
-                # It's time to turn off grid charging for the battery
-                print(
-                    f"{datetime.now().strftime("%H:%M:%S")}: Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)",
-                    flush=True,
-                )
-                try:
+            if self.battery_rule_enabled is None:
+                # First time in loop, set it to ensure that all settings are correct
+                if enough_battery:
+                    print("Disabling and configuring grid charging")
                     self.disable_grid_charging()
                     self.battery_rule_enabled = False
-                    print("Grid charging disabled!", flush=True)
-                except SolarError as e:
-                    print(
-                        f"Error occurred while disabling grid charging: {e}", flush=True
-                    )
-                    # Assume that the battery rule wasn't updated so that we can try again
-                    self.battery_rule_enabled = True
-
-            elif not enough_battery and not self.battery_rule_enabled:
-                # The battery level is too low, enable the charging rule
-                print(
-                    f"{datetime.now().strftime("%H:%M:%S")}: Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)",
-                    flush=True,
-                )
-                try:
+                else:
+                    print("Enabling and configuring grid charging")
                     self.enable_grid_charging()
                     self.battery_rule_enabled = True
-                    print("Grid charging enabled!", flush=True)
-                except SolarError as e:
+            else:
+                # Settings have already been setup, only need to change them when status changes
+                if enough_battery and self.battery_rule_enabled:
+                    # It's time to turn off grid charging for the battery
                     print(
-                        f"Error occurred while enabling grid charging: {e}", flush=True
+                        f"{datetime.now().strftime("%H:%M:%S")}: Battery has sufficient charge ({current_battery}% >= {self.target_percent}%), disabling grid charging (during specified times)",
+                        flush=True,
                     )
-                    # Assume that the battery rule wasn't updated so that we can try again
-                    self.battery_rule_enabled = False
+                    try:
+                        self.disable_grid_charging()
+                        self.battery_rule_enabled = False
+                        print("Grid charging disabled!", flush=True)
+                    except SolarError as e:
+                        print(
+                            f"Error occurred while disabling grid charging: {e}",
+                            flush=True,
+                        )
+                        # Assume that the battery rule wasn't updated so that we can try again
+                        self.battery_rule_enabled = True
+
+                elif not enough_battery and not self.battery_rule_enabled:
+                    # The battery level is too low, enable the charging rule
+                    print(
+                        f"{datetime.now().strftime("%H:%M:%S")}: Battery has insufficient charge ({current_battery}% >= {self.target_percent}%), enabling grid charging (during specified times)",
+                        flush=True,
+                    )
+                    try:
+                        self.enable_grid_charging()
+                        self.battery_rule_enabled = True
+                        print("Grid charging enabled!", flush=True)
+                    except SolarError as e:
+                        print(
+                            f"Error occurred while enabling grid charging: {e}",
+                            flush=True,
+                        )
+                        # Assume that the battery rule wasn't updated so that we can try again
+                        self.battery_rule_enabled = False
 
             time.sleep(self.update_frequency)
 

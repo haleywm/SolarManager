@@ -182,11 +182,11 @@ class SolarManager:
             if self.battery_rule_enabled is None:
                 # First time in loop, set it to ensure that all settings are correct
                 if enough_battery:
-                    print("Disabling and configuring grid charging")
+                    print("Disabling and configuring grid charging", flush=True)
                     self.disable_grid_charging()
                     self.battery_rule_enabled = False
                 else:
-                    print("Enabling and configuring grid charging")
+                    print("Enabling and configuring grid charging", flush=True)
                     self.enable_grid_charging()
                     self.battery_rule_enabled = True
             else:

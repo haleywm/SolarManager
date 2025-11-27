@@ -21,7 +21,7 @@ class SolarManager:
         update_frequency: int = 600,
         max_delay_time: int = 600,
         api_delay_time: int = 10,
-        enable_webhooks: bool = False,
+        enable_webhook: bool = False,
         webhook_url: str = "",
         webhook_key: str = "",
         verbose: bool = False,
@@ -35,6 +35,9 @@ class SolarManager:
         self.update_frequency = update_frequency
         self.max_delay_time = max_delay_time
         self.api_delay_time = api_delay_time
+        self.enable_webhook = enable_webhook
+        self.webhook_url = webhook_url
+        self.webhook_key = webhook_key
         self.verbose = verbose
 
         # Creating a session to use for API requests
@@ -174,6 +177,9 @@ class SolarManager:
         )
         while True:
             current_battery = self.get_current_charge()
+            # Since the request should be fast, update the webhook quickly if needed
+            if self.enable_webhook:
+                self.message_webhook(current_battery)
 
             enough_battery = current_battery >= self.target_percent
 
@@ -259,6 +265,16 @@ class SolarManager:
         # Not currently an issue
 
         return result
+
+    def message_webhook(self, battery_level: int) -> None:
+        # Request the webhook if needed
+        if self.enable_webhook:
+            try:
+                requests.post(self.webhook_url, data={self.webhook_key: battery_level})
+                if self.verbose:
+                    print("Successfully updated webhook with battery level")
+            except requests.exceptions.RequestException as e:
+                print(f"Error running webhook: {e}")
 
     def _parse_time(self, time: str) -> tuple[str, str]:
         values = re.match(r"^(\d\d):(\d\d)$", time)

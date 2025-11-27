@@ -29,7 +29,7 @@ def main() -> None:
         update_frequency=config["timing"]["update_frequency"],
         max_delay_time=config["timing"]["max_delay_time"],
         api_delay_time=config["timing"]["api_delay_time"],
-        enable_webhooks=config["webhooks"]["enable"],
+        enable_webhook=config["webhooks"]["enable"],
         webhook_url=config["webhooks"]["url"],
         webhook_key=config["webhooks"]["key"],
         verbose=config["other"]["verbose"],

@@ -21,6 +21,9 @@ class SolarManager:
         update_frequency: int = 600,
         max_delay_time: int = 600,
         api_delay_time: int = 10,
+        enable_webhooks: bool = False,
+        webhook_url: str = "",
+        webhook_key: str = "",
         verbose: bool = False,
     ) -> None:
         self.api_key = api_key

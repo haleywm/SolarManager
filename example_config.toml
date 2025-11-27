@@ -29,6 +29,16 @@ max_delay_time = 600
 # With no delay, many requests are denied
 api_delay_time = 10
 
+[webhooks]
+
+# If outputting current battery level to a webhook should be enabled
+enable = false
+# The URL to make the POST request to when a battery value is read
+url = ""
+# The key to pair with the battery level
+key = "battery"
+# Battery level will be given as an integer value of the above key
+
 [other]
 # If the script should aggressively print status messages. Mostly useful for debugging.
 verbose = false

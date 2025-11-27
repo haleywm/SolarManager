@@ -278,7 +278,7 @@ class SolarManager:
         # Request the webhook if needed
         if self.enable_webhook:
             try:
-                requests.post(self.webhook_url, data={self.webhook_key: battery_level})
+                requests.post(self.webhook_url, json={self.webhook_key: battery_level})
                 if self.verbose:
                     print("Successfully updated webhook with battery level")
             except requests.exceptions.RequestException as e:

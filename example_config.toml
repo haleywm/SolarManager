@@ -35,7 +35,11 @@ api_delay_time = 10
 enable = false
 # The URL to make the POST request to when a battery value is read
 url = ""
-# Battery level will be given as an integer value of the battery key
+# The given URL will receive a POST request with a json dict specifying:
+# battery= battery% as an int,
+# power_usage= the current power load from the house as an int in watts
+# solar_output= the current solar panel output as an int in watts
+# grid_power= the current power going in or out of the grid as an int in watts. Positive for drawing power from the grid. Negative for distributing power to the grid.
 
 [other]
 # If the script should aggressively print status messages. Mostly useful for debugging.

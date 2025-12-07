@@ -111,7 +111,7 @@ class SolarManager:
         return stop_switch_status == 1
 
     def get_current_values(self) -> tuple[int, Optional[dict[str, int]]]:
-        # Return the current charge, parse and return webhook data at the same time
+        # Return the current charge, parse and return webhook data at the same time if required
         res = self.session.post(
             self.url_prefix + "v1/device/mix/mix_last_data",
             data={"mix_sn": self.mix_sn},

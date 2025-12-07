@@ -35,9 +35,7 @@ api_delay_time = 10
 enable = false
 # The URL to make the POST request to when a battery value is read
 url = ""
-# The key to pair with the battery level
-key = "battery"
-# Battery level will be given as an integer value of the above key
+# Battery level will be given as an integer value of the battery key
 
 [other]
 # If the script should aggressively print status messages. Mostly useful for debugging.

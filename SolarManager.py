@@ -23,7 +23,6 @@ class SolarManager:
         api_delay_time: int = 10,
         enable_webhook: bool = False,
         webhook_url: str = "",
-        webhook_key: str = "",
         verbose: bool = False,
     ) -> None:
         self.api_key = api_key
@@ -37,7 +36,6 @@ class SolarManager:
         self.api_delay_time = api_delay_time
         self.enable_webhook = enable_webhook
         self.webhook_url = webhook_url
-        self.webhook_key = webhook_key
         self.verbose = verbose
 
         # Creating a session to use for API requests
@@ -112,7 +110,8 @@ class SolarManager:
 
         return stop_switch_status == 1
 
-    def get_current_charge(self) -> int:
+    def get_current_values(self) -> tuple[int, Optional[dict[str, int]]]:
+        # Return the current charge, parse and return webhook data at the same time
         res = self.session.post(
             self.url_prefix + "v1/device/mix/mix_last_data",
             data={"mix_sn": self.mix_sn},
@@ -149,7 +148,18 @@ class SolarManager:
         elif self.verbose:
             print(f"Parsed data is {seconds_between:.1f} seconds old")
 
-        return charge
+        if self.enable_webhook:
+            webhook_data = {
+                "battery": int(data["data"]["soc"]),
+                "power_usage": int(data["data"]["plocalLoadR"]),
+                "solar_output": int(data["data"]["ppv"]),
+                "grid_power": int(data["data"]["pacToUserR"])
+                - int(data["data"]["pacToGridR"]),
+            }
+        else:
+            webhook_data = None
+
+        return charge, webhook_data
 
     """ def currently_active_period(self) -> bool:
         # Check if the current period is the active period
@@ -176,10 +186,10 @@ class SolarManager:
             flush=True,
         )
         while True:
-            current_battery = self.get_current_charge()
+            current_battery, webhook_data = self.get_current_values()
             # Since the request should be fast, update the webhook quickly if needed
-            if self.enable_webhook:
-                self.message_webhook(current_battery)
+            if self.enable_webhook and webhook_data:
+                self.message_webhook(webhook_data)
 
             enough_battery = current_battery >= self.target_percent
 
@@ -274,11 +284,11 @@ class SolarManager:
 
         return result
 
-    def message_webhook(self, battery_level: int) -> None:
+    def message_webhook(self, webhook_data: dict[str, int]) -> None:
         # Request the webhook if needed
         if self.enable_webhook:
             try:
-                requests.post(self.webhook_url, json={self.webhook_key: battery_level})
+                requests.post(self.webhook_url, json=webhook_data)
                 if self.verbose:
                     print("Successfully updated webhook with battery level")
             except requests.exceptions.RequestException as e:

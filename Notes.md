@@ -21,3 +21,10 @@ Endpoints that I'll need:
     - In my code, I'll have to be able to generate two versions of this. One which sets the first time period as on, and goes from the earliest grid draw time to the latest, and the remaining time periods off. Then, a second one with all time periods off. They can share the settings for the earlier values about what to do in battery first mode.
 
 Example data dumps can be found in the `examples/` folder. There will be .gitignored for now because of the likelihood of PII in them.
+
+## Useful values in mix_last_data:
+
+`ppv`: Current photovoltaic output, in watts
+`pLocalLoadR`: Current house power usage in watts
+`pacToGridR`: Current power exporting to the grid in watts
+`pacToUserR`: Current power imported from grid in watts
